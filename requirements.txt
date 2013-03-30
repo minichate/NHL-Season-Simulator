@@ -1,2 +1,13 @@
 BeautifulSoup==3.2.1
+Django==1.5.1
+amqp==1.0.10
+anyjson==0.3.3
+billiard==2.7.3.23
+celery==3.0.17
+celery-with-redis==3.0
+django-celery==3.0.17
+kombu==2.5.8
+python-dateutil==1.5
+pytz==2013b
+redis==2.7.2
 wsgiref==0.1.2
