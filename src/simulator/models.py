@@ -4,6 +4,16 @@ class Simulation(models.Model):
     run_at = models.DateTimeField(auto_now=True)
     N = models.IntegerField()
     my_team = models.CharField(max_length=3)
+    in_playoffs = models.IntegerField(null=True, blank=True)
+    out_playoffs = models.IntegerField(null=True, blank=True)
+    
+    @property
+    def playoff_probability(self):
+        return 100 * float(self.in_playoffs) / float(self.N)
+    
+    @property
+    def non_playoff_probability(self):
+        return 100.0 - self.playoff_probability
 
 class GameResult(models.Model):
     simulation = models.ForeignKey(Simulation)
@@ -17,3 +27,12 @@ class GameResult(models.Model):
     @property
     def scenarios(self):
         return self.home_loss_good + self.home_win_good
+
+    @property
+    def lift_percentage(self):
+        if self.desired == self.home:
+            diff = abs(self.scenarios - self.home_win_good)
+            return 100 * float(self.home_win_good - diff) / float(self.simulation.N)
+        else:
+            diff = abs(self.scenarios - self.home_loss_good)
+            return 100 * float(self.home_loss_good - diff) / float(self.simulation.N)

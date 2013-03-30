@@ -54,6 +54,9 @@ GAME_VALUES = {('home', 'WIN'): 2,
                ('away', 'OTLOSS'): 2}
 
 class PlayoffSimulator(object):
+    
+    position = [0] * 15
+    
     @property
     def completed_sims(self):
         return self.in_playoffs + self.out_playoffs
@@ -103,6 +106,7 @@ class PlayoffSimulator(object):
             if (team in self.east_points
                 and self.points[team] > self.points[self.MY_TEAM]):
                 position += 1
+        
         return position <= 8
 
     def made_playoffs_if(self, game, result):
@@ -122,16 +126,17 @@ class PlayoffSimulator(object):
         critical = False
         if self.made_playoffs():
             self.in_playoffs += 1
-            self.points[self.MY_TEAM] -= 2
+            self.points[self.MY_TEAM] -= 4
             if not self.made_playoffs():
                 critical = True
-            self.points[self.MY_TEAM] += 2
+            self.points[self.MY_TEAM] += 4
         else:
             self.out_playoffs += 1
-            self.points[self.MY_TEAM] += 2
+            self.points[self.MY_TEAM] += 4
             if self.made_playoffs():
                 critical = True
-            self.points[self.MY_TEAM] -= 2
+            self.points[self.MY_TEAM] -= 4
+            
         return critical
 
     def update_games_which_matter(self, games):
@@ -169,8 +174,6 @@ class PlayoffSimulator(object):
 
     def report(self):
         for game in self.games:
-            print game
-            
             game_result = GameResult()
             game_result.home = game['home']
             game_result.away = game['away']
@@ -190,6 +193,10 @@ class PlayoffSimulator(object):
                 game_result.desired = None
                 
             game_result.save()
+            
+            self.SIMULATION.in_playoffs = self.in_playoffs
+            self.SIMULATION.out_playoffs = self.out_playoffs
+            self.SIMULATION.save()
 
             print "%s: %s vs %s: %s (%s %s)" % (game['date'],
                                                 game['home'],

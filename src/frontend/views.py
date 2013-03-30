@@ -6,7 +6,7 @@ from django.shortcuts import render_to_response
 from django.db.models.aggregates import Count
 
 def kickoff(request):
-    N = 50000
+    N = 1000
     simulator = PlayoffSimulator()
     
     for team in simulator.east_points:
