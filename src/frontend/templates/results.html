@@ -1,0 +1,93 @@
+<html>
+
+	<head>
+		<link href="/static/css/bootstrap.css" rel="stylesheet">
+		<style type="text/css">
+			body {
+				padding-top: 20px;
+				padding-bottom: 40px;
+			}
+
+			/* Custom container */
+			.container-narrow {
+				margin: 0 auto;
+				max-width: 700px;
+			}
+			.container-narrow > hr {
+				margin: 30px 0;
+			}
+
+			/* Main marketing message and sign up button */
+			.jumbotron {
+				margin: 60px 0;
+				text-align: center;
+			}
+			.jumbotron h1 {
+				font-size: 72px;
+				line-height: 1;
+			}
+			.jumbotron .btn {
+				font-size: 21px;
+				padding: 14px 24px;
+			}
+
+			/* Supporting marketing content */
+			.marketing {
+				margin: 60px 0;
+			}
+			.marketing p + h4 {
+				margin-top: 28px;
+			}
+		</style>
+		<link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+	</head>
+
+	<body>
+		<div class="container-narrow">
+
+			<div class="masthead">
+				<h3 class="muted">NHL Season Simulator</h3>
+				<p>
+					Which teams should you cheer for on any given night, to give your favorite team
+					the best chance of making the playoffs this year?
+				</p>
+
+				<p>
+					We simulated {{ simulation.N }} seasons on {{ simulation.run_at }} UTC. We've found that the following
+					list of games optimizes {{ simulation.my_team }}'s chances of making the playoffs this year:
+				</p>
+			</div>
+
+			{% regroup game_results by date as games %}
+
+			{% for game in games %}
+			<h3>{{ game.grouper }}</h3>
+
+			{% for game_result in game.list %}
+			<div class="row-fluid well">
+				<h4><img src="/static/img/{{ game_result.home }}.gif" width="32" /> {{ game_result.home }} vs. <img src="/static/img/{{ game_result.away }}.gif" width="32" /> {{ game_result.away }}</h4>
+			<p>
+
+				{% if game_result.desired %}
+				Cheer for {{ game_result.desired}}
+
+				{% if game_result.desired == game_result.home %}
+				( This helps in {{ game_result.home_win_good }} out of {{ game_result.scenarios }} scenarios )
+				{% else %}
+				( This helps in {{ game_result.home_loss_good }} out of {{ game_result.scenarios }} scenarios )
+				{% endif %}
+				{% else %}
+				The result of this game doesn't matter -- in no simulation did it affect the outcome of {{ simulation.my_team}}
+				making the playoffs this year.
+				{% endif %}
+			</p>
+			</div>
+			{% endfor %}
+
+			<br />
+			<br />
+			{% endfor %}
+		</div>
+	</body>
+
+</html>
