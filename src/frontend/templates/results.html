@@ -51,6 +51,20 @@
 					Which teams should you cheer for on any given night, to give your favorite team
 					the best chance of making the playoffs this year?
 				</p>
+				
+				<div class="row-fluid">
+					<br />
+					<strong>What is your favorite team?</strong>
+					<form action="/" method="GET" class="form-inline">
+						<select name="team">
+							{% for team in teams %}
+							<option{% if team == my_team %} selected="selected"{% endif %}>{{ team }}</option>
+							{% endfor %}
+						</select>
+						
+						<input type="submit" class="btn" />
+					</form>
+				</div>
 
 				<p>
 					We simulated {{ simulation.N }} seasons on {{ simulation.run_at }} UTC. We've found that the following
