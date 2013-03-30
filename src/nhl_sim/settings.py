@@ -1,4 +1,6 @@
 import djcelery, os
+import dj_database_url
+
 djcelery.setup_loader()
 
 PROJECT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -23,6 +25,8 @@ DATABASES = {
         'PORT': '',                      # Set to empty string for default.
     }
 }
+
+DATABASES['default'] =  dj_database_url.config()
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -160,3 +164,5 @@ LOGGING = {
 
 BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
