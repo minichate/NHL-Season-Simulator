@@ -4,6 +4,7 @@ from simulator.playoffs import PlayoffSimulator
 from simulator.models import Simulation, GameResult
 from django.shortcuts import render_to_response
 from django.db.models.aggregates import Count
+from django.http.response import HttpResponsePermanentRedirect
 
 def kickoff(request):
     N = 5000
@@ -23,11 +24,16 @@ def kickoff(request):
 def show_results(request):
     
     if 'team' in request.GET:
-        my_team = request.GET['team']
+        my_team = request.GET['team'].upper()
     else:
         my_team = 'TOR'
+        
+    query = Simulation.objects.annotate(game_results_count=Count('gameresult')).filter(my_team=my_team, game_results_count__gt=1).order_by('-run_at')
     
-    simulation = Simulation.objects.annotate(game_results_count=Count('gameresult')).filter(my_team=my_team, game_results_count__gt=1).order_by('-run_at')[0]
+    if query.count() == 0:
+        return HttpResponsePermanentRedirect('/')
+        
+    simulation = query[0]
     game_results = GameResult.objects.filter(simulation=simulation).order_by('date')
     
     teams = Simulation.objects.order_by('-run_at').values_list('my_team')[:30]
