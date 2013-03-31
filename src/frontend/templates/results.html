@@ -38,7 +38,7 @@
 			.marketing p + h4 {
 				margin-top: 28px;
 			}
-			
+
 			.playoff_probability {
 				padding: 20px;
 				background-color: rgba({{ simulation.non_playoff_probability|add:"0" }}, {{ simulation.playoff_probability|add:"0" }}, 0, 0.7);
@@ -46,7 +46,7 @@
 				bottom: 0;
 				width: 100%;
 			}
-			
+
 			.playoff_probability p {
 				padding: 0;
 				margin: 0;
@@ -59,11 +59,13 @@
 	</head>
 
 	<body>
-		
+
 		<div class="playoff_probability">
-			<p>{{ my_team }} has a {{ simulation.playoff_probability }}% chance of making the playoffs this season!</p>
+			<p>
+				{{ my_team }} has a {{ simulation.playoff_probability }}% chance of making the playoffs this season!
+			</p>
 		</div>
-		
+
 		<div class="container-narrow">
 
 			<div class="masthead">
@@ -72,17 +74,23 @@
 					Which teams should you cheer for on any given night, to give your favorite team
 					the best chance of making the playoffs this year?
 				</p>
-				
+
+				<p><strong>Made by Christopher Troup (<a href="https://twitter.com/minichate">@minichate</a>)</strong><br />
+					<a href="https://twitter.com/minichate" class="twitter-follow-button" data-show-count="false">Follow @minichate</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+				</p>
+
 				<div class="row-fluid">
 					<br />
 					<strong>What is your favorite team?</strong>
 					<form action="/" method="GET" class="form-inline">
 						<select name="team">
 							{% for team in teams %}
-							<option{% if team == my_team %} selected="selected"{% endif %}>{{ team }}</option>
-							{% endfor %}
+							<option{% if team == my_team %} selected="selected"{% endif %}>
+								{{ team }}</option>
+								{% endfor %}
 						</select>
-						
+
 						<input type="submit" class="btn" />
 					</form>
 				</div>
@@ -91,7 +99,7 @@
 					We simulated {{ simulation.N }} seasons on {{ simulation.run_at }} UTC. We've found that the following
 					list of games optimizes {{ simulation.my_team }}'s chances of making the playoffs this year:
 				</p>
-				
+
 			</div>
 
 			{% regroup game_results by date as games %}
@@ -102,18 +110,18 @@
 			{% for game_result in game.list %}
 			<div class="row-fluid well">
 				<h4><img src="/static/img/{{ game_result.home }}.gif" width="32" /> {{ game_result.home }} vs. <img src="/static/img/{{ game_result.away }}.gif" width="32" /> {{ game_result.away }}</h4>
-			<p>
+				<p>
 
-				{% if game_result.desired == my_team %}
-				Cheer for {{ my_team }} of course!
-				{% elif game_result.desired %}
-				Cheer for {{ game_result.desired}} -- A {{ game_result.desired}} win lifts {{ my_team }}'s chances of making the playoffs
-				by <strong>{{ game_result.lift_percentage }}%</strong>.
-				{% else %}
-				The result of this game doesn't matter -- in no simulation did it affect the outcome of {{ simulation.my_team}}
-				making the playoffs this year.
-				{% endif %}
-			</p>
+					{% if game_result.desired == my_team %}
+					Cheer for {{ my_team }} of course!
+					{% elif game_result.desired %}
+					Cheer for {{ game_result.desired}} -- A {{ game_result.desired}} win lifts {{ my_team }}'s chances of making the playoffs
+					by <strong>{{ game_result.lift_percentage }}%</strong>.
+					{% else %}
+					The result of this game doesn't matter -- in no simulation did it affect the outcome of {{ simulation.my_team}}
+					making the playoffs this year.
+					{% endif %}
+				</p>
 			</div>
 			{% endfor %}
 
