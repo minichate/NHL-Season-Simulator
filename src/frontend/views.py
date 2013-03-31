@@ -7,7 +7,7 @@ from django.db.models.aggregates import Count
 from django.http.response import HttpResponsePermanentRedirect
 
 def kickoff(request):
-    N = 5000
+    N = 50000
     simulator = PlayoffSimulator()
     
     for team in simulator.east_points:
