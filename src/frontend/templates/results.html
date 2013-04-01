@@ -24,6 +24,10 @@
 				font-weight: bold;
 				color: #fff;
 			}
+			
+			.table tbody tr.unimportant > td {
+				opacity: 0.8;
+			}
 		</style>
 		<link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
 	</head>
@@ -96,9 +100,37 @@
 			{% for game in games %}
 			<div class="row-fluid">
 			<h3>{{ game.grouper }}</h3>
-			<br />
 			</div>
+			
+			<table class="table" style="font-size: 14px;">
+				<thead>
+                <tr>
+                  <th></th>
+                  <th>Home</th>
+                  <th>Away</th>
+                  <th>Desired Result</th>
+                </tr>
+              </thead>
+				{% for game_result in game.list %}
+				<tr {% if game_result.desired %}class="info"{% else %}class="unimportant"{% endif %}>
+					<td>{% if game_result.desired %}<i class="icon-star"></i>{% endif %}</td>
+					<td><img src="/static/img/{{ game_result.home }}.gif" width="16" /> <strong>{{ game_result.home }}</strong></td>
+					<td><img src="/static/img/{{ game_result.away }}.gif" width="16" /> <strong>{{ game_result.away }}</strong></td>
+					<td>
+						{% if game_result.desired == my_team %}
+							Cheer for {{ my_team }} of course!
+							{% elif game_result.desired %}
+							A <strong>{{ game_result.desired}}</strong> win lifts {{ my_team }}'s chances of making the playoffs
+							by <span class="label label-success">{{ game_result.lift_percentage|floatformat:2 }}%</span>
+							{% else %}
+							The result of this game doesn't affect {{ simulation.my_team}} making the playoffs this year.
+							{% endif %}
+					</td>
+				</tr>
+				{% endfor %}
+			</table>
 
+			{% comment %}
 			{% for game_result in game.list %}
 				{% if not forloop.counter|divisibleby:2 %}
 				<div class="row-fluid">
@@ -114,8 +146,8 @@
 							Cheer for {{ game_result.desired}} -- A {{ game_result.desired}} win lifts {{ my_team }}'s chances of making the playoffs
 							by <span class="label label-success">{{ game_result.lift_percentage|floatformat:2 }}%</span>
 							{% else %}
-							The result of this game doesn't matter -- in no simulation did it affect the outcome of {{ simulation.my_team}}
-							making the playoffs this year.
+							<span class="muted">The result of this game doesn't matter -- in no simulation did it affect the outcome of {{ simulation.my_team}}
+							making the playoffs this year.</span>
 							{% endif %}
 						</p>
 					</div>
@@ -124,8 +156,8 @@
 				</div>
 				{% endif %}
 			{% endfor %}
+			{% endcomment %}
 
-			<br />
 			{% endfor %}
 		</div>
 	</body>
