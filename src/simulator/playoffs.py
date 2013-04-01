@@ -1,6 +1,8 @@
 import datetime, copy, random, urllib2
 from simulator.models import GameResult
 from BeautifulSoup import BeautifulSoup
+from collections import defaultdict
+import operator
 
 """
 Throughout, we ignore tie-break rules.  Instead, tie breaks are simply random.
@@ -42,6 +44,19 @@ def get_standings(table):
             team = str(team['rel'])
             CONF_POINTS[team] = int(col[7].contents[0])
     return CONF_POINTS
+
+def get_division(table):
+    table_body = table.find('tbody')
+    CONF_DIVISION = {}
+
+    for row in table_body.findAll('tr'):
+        col = row.findAll('td')
+        if col[0]['colspan'] != '17':
+            team = col[1].find('a')
+            team = str(team['rel'])
+            division = col[2].contents[0]
+            CONF_DIVISION[team] = str(division)
+    return CONF_DIVISION
 
 #WIN or LOSS from perspective of home team
 GAME_VALUES = {('home', 'WIN'): 2,
@@ -90,7 +105,11 @@ class PlayoffSimulator(object):
         self.east_points = get_standings(east_table)
         self.west_points = get_standings(west_table)
         self.in_playoffs, self.out_playoffs = 0,0
-
+        
+        self.division = {}
+        self.division = get_division(east_table)
+        self.division.update(get_division(west_table))
+        
     def update_points(self, game, result):
         self.points[game['home']] += GAME_VALUES[('home', result)]
         self.points[game['away']] += GAME_VALUES[('away', result)]
@@ -100,17 +119,28 @@ class PlayoffSimulator(object):
         self.points[game['away']] -= GAME_VALUES[('away', result)]
 
     def made_playoffs(self):
-        """Fails to take into account tiebreaks or division leaders"""
-        position = 1
-        for team in self.points:
-            if (self.MY_TEAM in self.east_points and team in self.east_points
-                and self.points[team] > self.points[self.MY_TEAM]):
-                position += 1
-            elif (self.MY_TEAM in self.west_points and team in self.west_points
-                and self.points[team] > self.points[self.MY_TEAM]):
-                position += 1
+        DIVS = defaultdict(list)
         
-        return position <= 8
+        for team, points in self.points.iteritems():
+            if team in self.east_points and self.MY_TEAM in self.east_points:
+                DIVS[self.division[team]].append((team, points))
+                DIVS[self.division[team]] = sorted(DIVS[self.division[team]], key=operator.itemgetter(1), reverse=True)
+            if team in self.west_points and self.MY_TEAM in self.west_points:
+                DIVS[self.division[team]].append((team, points))
+                DIVS[self.division[team]] = sorted(DIVS[self.division[team]], key=operator.itemgetter(1), reverse=True)
+            
+        STANDINGS = []
+        INTERSTANDINGS = []
+        
+        for div in DIVS:
+            top = DIVS[div].pop(0)
+            STANDINGS.append(top)
+            INTERSTANDINGS = INTERSTANDINGS + DIVS[div]
+            
+        STANDINGS = sorted(STANDINGS, key=operator.itemgetter(1), reverse=True) + sorted(INTERSTANDINGS, key=operator.itemgetter(1), reverse=True)
+        STANDINGS = [x[0] for x in STANDINGS]
+        
+        return STANDINGS.index(self.MY_TEAM) <= 7
 
     def made_playoffs_if(self, game, result):
         self.update_points(game, result)
@@ -176,6 +206,12 @@ class PlayoffSimulator(object):
             self.update_games_which_matter(sim_games)
 
     def report(self):
+        self.SIMULATION.in_playoffs = self.in_playoffs
+        self.SIMULATION.out_playoffs = self.out_playoffs
+        self.SIMULATION.save()
+        
+        game_results = []
+        
         for game in self.games:
             game_result = GameResult()
             game_result.home = game['home']
@@ -195,18 +231,16 @@ class PlayoffSimulator(object):
                 root_for = 'don\'t care'
                 game_result.desired = None
                 
-            game_result.save()
+            game_results.append(game_result)
             
-            self.SIMULATION.in_playoffs = self.in_playoffs
-            self.SIMULATION.out_playoffs = self.out_playoffs
-            self.SIMULATION.save()
-
             print "(team: %s) %s: %s vs %s: %s (%s %s)" % (self.MY_TEAM, game['date'],
                                                 game['home'],
                                                 game['away'],
                                                 root_for,
                                                 game['win_good'],
                                                 game['loss_good'])
+            
+        GameResult.objects.bulk_create(game_results)
 
     def run(self, SIMULATION, N=0, MY_TEAM=''):
         self.MY_TEAM = MY_TEAM
