@@ -4,39 +4,8 @@
 		<link href="/static/css/bootstrap.css" rel="stylesheet">
 		<style type="text/css">
 			body {
-				padding-top: 0px;
+				padding-top: 20px;
 				padding-bottom: 40px;
-			}
-
-			/* Custom container */
-			.container-narrow {
-				margin: 0 auto;
-				max-width: 700px;
-			}
-			.container-narrow > hr {
-				margin: 30px 0;
-			}
-
-			/* Main marketing message and sign up button */
-			.jumbotron {
-				margin: 60px 0;
-				text-align: center;
-			}
-			.jumbotron h1 {
-				font-size: 72px;
-				line-height: 1;
-			}
-			.jumbotron .btn {
-				font-size: 21px;
-				padding: 14px 24px;
-			}
-
-			/* Supporting marketing content */
-			.marketing {
-				margin: 60px 0;
-			}
-			.marketing p + h4 {
-				margin-top: 28px;
 			}
 
 			.playoff_probability {
@@ -44,7 +13,8 @@
 				background-color: rgba({{ simulation.non_playoff_probability|add:"0" }}, {{ simulation.playoff_probability|add:"0" }}, 0, 0.7);
 				position: fixed;
 				bottom: 0;
-				width: 100%;
+				left: 0;
+				right: 0;
 			}
 
 			.playoff_probability p {
@@ -61,27 +31,43 @@
 	<body>
 
 		<div class="playoff_probability">
-			<p>
-				{{ my_team }} has a {{ simulation.playoff_probability }}% chance of making the playoffs this season!
-			</p>
+			<center>
+				<p>
+					{{ my_team }} has a {{ simulation.playoff_probability|floatformat:1 }}% chance of making the playoffs this season!
+				</p>
+			</center>
 		</div>
 
-		<div class="container-narrow">
+		<div class="container">
 
-			<div class="masthead">
-				<h3 class="muted">Who should I cheer for?</h3>
+			<div class="hero-unit">
+				<h1 class="muted">Who should I cheer for?</h1>
 				<p>
 					Which teams should you cheer for on any given night, to give your favorite team
 					the best chance of making the playoffs this year?
 				</p>
 
-				<p><strong>Made by Christopher Troup (<a href="https://twitter.com/minichate">@minichate</a>)</strong><br />
+				<p>
+					<strong>Made by Christopher Troup (<a href="https://twitter.com/minichate">@minichate</a>)</strong>
+					<br />
 					<a href="https://twitter.com/minichate" class="twitter-follow-button" data-show-count="false">Follow @minichate</a>
-<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+					<script>
+						! function(d, s, id) {
+							var js, fjs = d.getElementsByTagName(s)[0];
+							if (!d.getElementById(id)) {
+								js = d.createElement(s);
+								js.id = id;
+								js.src = "//platform.twitter.com/widgets.js";
+								fjs.parentNode.insertBefore(js, fjs);
+							}
+						}(document, "script", "twitter-wjs");
+					</script>
 				</p>
 
-				<div class="row-fluid">
-					<br />
+			</div>
+
+			<div class="row-fluid">
+				<div class="span12">
 					<strong>What is your favorite team?</strong>
 					<form action="/" method="GET" class="form-inline">
 						<select name="team">
@@ -94,38 +80,51 @@
 						<input type="submit" class="btn" />
 					</form>
 				</div>
+			</div>
 
-				<p>
-					We simulated {{ simulation.N }} seasons on {{ simulation.run_at }} UTC. We've found that the following
-					list of games optimizes {{ simulation.my_team }}'s chances of making the playoffs this year:
-				</p>
-
+			<div class="row-fluid">
+				<div class="span12">
+					<p>
+						We simulated {{ simulation.N }} seasons on {{ simulation.run_at }} UTC. We've found that the following
+						list of results optimize {{ simulation.my_team }}'s chances of making the playoffs this year:
+					</p>
+				</div>
 			</div>
 
 			{% regroup game_results by date as games %}
 
 			{% for game in games %}
+			<div class="row-fluid">
 			<h3>{{ game.grouper }}</h3>
+			<br />
+			</div>
 
 			{% for game_result in game.list %}
-			<div class="row-fluid well">
-				<h4><img src="/static/img/{{ game_result.home }}.gif" width="32" /> {{ game_result.home }} vs. <img src="/static/img/{{ game_result.away }}.gif" width="32" /> {{ game_result.away }}</h4>
-				<p>
+				{% if not forloop.counter|divisibleby:2 %}
+				<div class="row-fluid">
+				{% endif %}
+				<div class="span6">
+					<div class="well well-small">
+						<h4><img src="/static/img/{{ game_result.home }}.gif" width="32" /> {{ game_result.home }} vs. <img src="/static/img/{{ game_result.away }}.gif" width="32" /> {{ game_result.away }}</h4>
+						<p>
 
-					{% if game_result.desired == my_team %}
-					Cheer for {{ my_team }} of course!
-					{% elif game_result.desired %}
-					Cheer for {{ game_result.desired}} -- A {{ game_result.desired}} win lifts {{ my_team }}'s chances of making the playoffs
-					by <strong>{{ game_result.lift_percentage }}%</strong>.
-					{% else %}
-					The result of this game doesn't matter -- in no simulation did it affect the outcome of {{ simulation.my_team}}
-					making the playoffs this year.
-					{% endif %}
-				</p>
-			</div>
+							{% if game_result.desired == my_team %}
+							Cheer for {{ my_team }} of course!
+							{% elif game_result.desired %}
+							Cheer for {{ game_result.desired}} -- A {{ game_result.desired}} win lifts {{ my_team }}'s chances of making the playoffs
+							by <span class="label label-success">{{ game_result.lift_percentage|floatformat:2 }}%</span>
+							{% else %}
+							The result of this game doesn't matter -- in no simulation did it affect the outcome of {{ simulation.my_team}}
+							making the playoffs this year.
+							{% endif %}
+						</p>
+					</div>
+				</div>
+				{% if forloop.counter|divisibleby:2 or forloop.last %}
+				</div>
+				{% endif %}
 			{% endfor %}
 
-			<br />
 			<br />
 			{% endfor %}
 		</div>
