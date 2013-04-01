@@ -103,7 +103,10 @@ class PlayoffSimulator(object):
         """Fails to take into account tiebreaks or division leaders"""
         position = 1
         for team in self.points:
-            if (team in self.east_points
+            if (self.MY_TEAM in self.east_points and team in self.east_points
+                and self.points[team] > self.points[self.MY_TEAM]):
+                position += 1
+            elif (self.MY_TEAM in self.west_points and team in self.west_points
                 and self.points[team] > self.points[self.MY_TEAM]):
                 position += 1
         
@@ -198,7 +201,7 @@ class PlayoffSimulator(object):
             self.SIMULATION.out_playoffs = self.out_playoffs
             self.SIMULATION.save()
 
-            print "%s: %s vs %s: %s (%s %s)" % (game['date'],
+            print "(team: %s) %s: %s vs %s: %s (%s %s)" % (self.MY_TEAM, game['date'],
                                                 game['home'],
                                                 game['away'],
                                                 root_for,
@@ -214,10 +217,10 @@ class PlayoffSimulator(object):
             try:
                 self.simulate_once()
                 if self.completed_sims % 1000 == 0:
-                    print 'Have run %s simulations...' % self.completed_sims
+                    print '(team: %s) Have run %s simulations...' % (self.MY_TEAM, self.completed_sims)
             except KeyboardInterrupt:
                 break
-        print "%s %s" % (self.in_playoffs, self.out_playoffs)
+        #print "%s %s" % (self.in_playoffs, self.out_playoffs)
         self.report()
 
     def __init__(self):
