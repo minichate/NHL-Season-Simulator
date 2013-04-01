@@ -6,6 +6,8 @@ from django.shortcuts import render_to_response
 from django.db.models.aggregates import Count
 from django.http.response import HttpResponsePermanentRedirect
 
+teams = sorted([u'ANA', u'BOS', u'BUF', u'CAR', u'CBJ', u'CGY', u'CHI', u'COL', u'DAL', u'DET', u'EDM', u'FLA', u'LAK', u'MIN', u'MTL', u'NJD', u'NSH', u'NYI', u'NYR', u'OTT', u'PHI', u'PHX', u'PIT', u'SJS', u'STL', u'TBL', u'TOR', u'VAN', u'WPG', u'WSH'])
+
 def kickoff(request):
     N = 50000
     simulator = PlayoffSimulator()
@@ -35,9 +37,6 @@ def show_results(request):
         
     simulation = query[0]
     game_results = GameResult.objects.filter(simulation=simulation).order_by('date')
-    
-    teams = Simulation.objects.order_by('-run_at').values_list('my_team')[:30]
-    teams = sorted([x[0] for x in teams])
     
     return render_to_response('results.html',
                               {'game_results': game_results,
