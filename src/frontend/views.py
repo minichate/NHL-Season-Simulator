@@ -10,7 +10,7 @@ from celery import chain
 teams = sorted([u'ANA', u'BOS', u'BUF', u'CAR', u'CBJ', u'CGY', u'CHI', u'COL', u'DAL', u'DET', u'EDM', u'FLA', u'LAK', u'MIN', u'MTL', u'NJD', u'NSH', u'NYI', u'NYR', u'OTT', u'PHI', u'PHX', u'PIT', u'SJS', u'STL', u'TBL', u'TOR', u'VAN', u'WPG', u'WSH'])
 
 def kickoff(request):
-    N = 10000
+    N = 5000
     simulator = PlayoffSimulator()
     
     for team in (simulator.east_points.keys() + simulator.west_points.keys()):

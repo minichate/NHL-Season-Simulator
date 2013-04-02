@@ -9,7 +9,7 @@ class Command(BaseCommand):
     help = 'Closes the specified poll for voting'
 
     def handle(self, *args, **options):
-        N = 10000
+        N = 5000
         simulator = PlayoffSimulator()
         
         for team in (simulator.east_points.keys() + simulator.west_points.keys()):
