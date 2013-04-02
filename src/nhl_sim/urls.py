@@ -7,6 +7,7 @@ from django.conf.urls import patterns, include, url
 urlpatterns = patterns('',
     # Examples:
     url(r'^sim$', 'frontend.views.kickoff', name='kickoff'),
+    url(r'^stop', 'frontend.views.stop_all', name='stop_all'),
     url(r'^', 'frontend.views.show_results', name='show_results'),
     # url(r'^nhl_sim/', include('nhl_sim.foo.urls')),
 

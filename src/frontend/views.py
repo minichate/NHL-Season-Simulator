@@ -6,21 +6,39 @@ from django.shortcuts import render_to_response
 from django.db.models.aggregates import Count
 from django.http.response import HttpResponsePermanentRedirect
 from celery import chain
+from celery.task.control import revoke, discard_all
 
 teams = sorted([u'ANA', u'BOS', u'BUF', u'CAR', u'CBJ', u'CGY', u'CHI', u'COL', u'DAL', u'DET', u'EDM', u'FLA', u'LAK', u'MIN', u'MTL', u'NJD', u'NSH', u'NYI', u'NYR', u'OTT', u'PHI', u'PHX', u'PIT', u'SJS', u'STL', u'TBL', u'TOR', u'VAN', u'WPG', u'WSH'])
 
 def kickoff(request):
-    N = 5000
+    stop_all(request)
+    
+    N = 2000
     simulator = PlayoffSimulator()
     
     for team in (simulator.east_points.keys() + simulator.west_points.keys()):
         simulator.init(N, team)
-        simulation = Simulation.objects.create(my_team=team, N=0, simulator=simulator).pk
-        chain(*[add.si(simulation) for x in range(10)]).apply_async()
+        simulation = Simulation.objects.create(my_team=team, N=0, simulator=simulator)
         
-    return HttpResponse("ok")
+        request = add.delay(simulation.pk)
+        simulation.task_id = request.id
+        simulation.save()
+        
+    return HttpResponse("kicked off all")
 
-
+def stop_all(request):
+    discard_all()
+    
+    active_sims = Simulation.objects.filter(task_id__isnull=False).all()
+    for sim in active_sims:
+        revoke(sim.task_id, terminate=True)
+        sim.task_id = None
+        sim.save()
+        
+    discard_all()
+    
+    return HttpResponse("stopped all")
+    
 def show_results(request):
     
     if 'team' in request.GET:

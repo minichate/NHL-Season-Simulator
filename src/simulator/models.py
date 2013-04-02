@@ -8,6 +8,7 @@ class Simulation(models.Model):
     in_playoffs = models.IntegerField(null=True, blank=True)
     out_playoffs = models.IntegerField(null=True, blank=True)
     simulator = PickledObjectField()
+    task_id = models.CharField(max_length=255, null=True, blank=True)
     
     @property
     def playoff_probability(self):
