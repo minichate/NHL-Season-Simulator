@@ -1,4 +1,5 @@
 from django.db import models
+from picklefield.fields import PickledObjectField
 
 class Simulation(models.Model):
     run_at = models.DateTimeField(auto_now=True)
@@ -6,6 +7,7 @@ class Simulation(models.Model):
     my_team = models.CharField(max_length=3)
     in_playoffs = models.IntegerField(null=True, blank=True)
     out_playoffs = models.IntegerField(null=True, blank=True)
+    simulator = PickledObjectField()
     
     @property
     def playoff_probability(self):

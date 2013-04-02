@@ -1,5 +1,5 @@
 import datetime, copy, random, urllib2
-from simulator.models import GameResult
+from simulator.models import GameResult, Simulation
 from BeautifulSoup import BeautifulSoup
 from collections import defaultdict
 import operator
@@ -122,10 +122,10 @@ class PlayoffSimulator(object):
         DIVS = defaultdict(list)
         
         for team, points in self.points.iteritems():
-            if team in self.east_points and self.MY_TEAM in self.east_points:
+            if team in self.east_points and self.my_team in self.east_points:
                 DIVS[self.division[team]].append((team, points))
                 DIVS[self.division[team]] = sorted(DIVS[self.division[team]], key=operator.itemgetter(1), reverse=True)
-            if team in self.west_points and self.MY_TEAM in self.west_points:
+            if team in self.west_points and self.my_team in self.west_points:
                 DIVS[self.division[team]].append((team, points))
                 DIVS[self.division[team]] = sorted(DIVS[self.division[team]], key=operator.itemgetter(1), reverse=True)
             
@@ -140,7 +140,7 @@ class PlayoffSimulator(object):
         STANDINGS = sorted(STANDINGS, key=operator.itemgetter(1), reverse=True) + sorted(INTERSTANDINGS, key=operator.itemgetter(1), reverse=True)
         STANDINGS = [x[0] for x in STANDINGS]
         
-        return STANDINGS.index(self.MY_TEAM) <= 7
+        return STANDINGS.index(self.my_team) <= 7
 
     def made_playoffs_if(self, game, result):
         self.update_points(game, result)
@@ -159,16 +159,16 @@ class PlayoffSimulator(object):
         critical = False
         if self.made_playoffs():
             self.in_playoffs += 1
-            self.points[self.MY_TEAM] -= 4
+            self.points[self.my_team] -= 4
             if not self.made_playoffs():
                 critical = True
-            self.points[self.MY_TEAM] += 4
+            self.points[self.my_team] += 4
         else:
             self.out_playoffs += 1
-            self.points[self.MY_TEAM] += 4
+            self.points[self.my_team] += 4
             if self.made_playoffs():
                 critical = True
-            self.points[self.MY_TEAM] -= 4
+            self.points[self.my_team] -= 4
             
         return critical
 
@@ -206,9 +206,11 @@ class PlayoffSimulator(object):
             self.update_games_which_matter(sim_games)
 
     def report(self):
-        self.SIMULATION.in_playoffs = self.in_playoffs
-        self.SIMULATION.out_playoffs = self.out_playoffs
-        self.SIMULATION.save()
+        self.simulation.in_playoffs = self.in_playoffs
+        self.simulation.out_playoffs = self.out_playoffs
+        self.simulation.simulator = self
+        self.simulation.N = self.completed_sims
+        self.simulation.save()
         
         game_results = []
         
@@ -219,7 +221,7 @@ class PlayoffSimulator(object):
             game_result.date = game['date'] 
             game_result.home_win_good = game['win_good']
             game_result.home_loss_good = game['loss_good']
-            game_result.simulation = self.SIMULATION 
+            game_result.simulation = self.simulation 
             
             if game['win_good'] > game['loss_good']:
                 root_for = 'root for %s' % game['home']
@@ -233,29 +235,30 @@ class PlayoffSimulator(object):
                 
             game_results.append(game_result)
             
-            print "(team: %s) %s: %s vs %s: %s (%s %s)" % (self.MY_TEAM, game['date'],
+            print "(team: %s) %s: %s vs %s: %s (%s %s)" % (self.my_team, game['date'],
                                                 game['home'],
                                                 game['away'],
                                                 root_for,
                                                 game['win_good'],
                                                 game['loss_good'])
             
+        GameResult.objects.filter(simulation=self.simulation).all().delete()
         GameResult.objects.bulk_create(game_results)
 
-    def run(self, SIMULATION, N=0, MY_TEAM=''):
-        self.MY_TEAM = MY_TEAM
-        self.N = N
-        self.SIMULATION = SIMULATION
-        
-        for x in xrange(self.N):
+    def run(self):
+        for _ in xrange(self.completed_sims, self.completed_sims + self.N):
             try:
                 self.simulate_once()
                 if self.completed_sims % 1000 == 0:
-                    print '(team: %s) Have run %s simulations...' % (self.MY_TEAM, self.completed_sims)
+                    print '(team: %s) Have run %s simulations...' % (self.my_team, self.completed_sims)
             except KeyboardInterrupt:
                 break
         #print "%s %s" % (self.in_playoffs, self.out_playoffs)
         self.report()
+        
+    def init(self, N, my_team):
+        self.my_team = my_team
+        self.N = N
 
     def __init__(self):
         self.scrape_schedule()

@@ -5,21 +5,19 @@ from simulator.models import Simulation, GameResult
 from django.shortcuts import render_to_response
 from django.db.models.aggregates import Count
 from django.http.response import HttpResponsePermanentRedirect
+from celery import chain
 
 teams = sorted([u'ANA', u'BOS', u'BUF', u'CAR', u'CBJ', u'CGY', u'CHI', u'COL', u'DAL', u'DET', u'EDM', u'FLA', u'LAK', u'MIN', u'MTL', u'NJD', u'NSH', u'NYI', u'NYR', u'OTT', u'PHI', u'PHX', u'PIT', u'SJS', u'STL', u'TBL', u'TOR', u'VAN', u'WPG', u'WSH'])
 
 def kickoff(request):
-    N = 50000
+    N = 10000
     simulator = PlayoffSimulator()
     
-    for team in simulator.east_points:
-        simulation = Simulation.objects.create(my_team=team, N=N)
-        add.delay(simulator, simulation, N, team)
+    for team in (simulator.east_points.keys() + simulator.west_points.keys()):
+        simulator.init(N, team)
+        simulation = Simulation.objects.create(my_team=team, N=0, simulator=simulator).pk
+        chain(*[add.si(simulation) for x in range(10)]).apply_async()
         
-    for team in simulator.west_points:
-        simulation = Simulation.objects.create(my_team=team, N=N)
-        add.delay(simulator, simulation, N, team)
-    
     return HttpResponse("ok")
 
 
