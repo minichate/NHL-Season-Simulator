@@ -1,5 +1,6 @@
 BeautifulSoup==3.2.1
 Django==1.5.1
+South==0.7.6
 amqp==1.0.10
 anyjson==0.3.3
 billiard==2.7.3.23
