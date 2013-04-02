@@ -16,6 +16,8 @@ def kickoff(request):
     N = 2000
     simulator = PlayoffSimulator()
     
+    stop_all(request)
+    
     for team in (simulator.east_points.keys() + simulator.west_points.keys()):
         simulator.init(N, team)
         simulation = Simulation.objects.create(my_team=team, N=0, simulator=simulator)
