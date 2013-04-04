@@ -1,6 +1,10 @@
+<!DOCTYPE html>
 <html>
 
 	<head>
+        <meta charset="utf-8">
+        <title>Who should I cheer for?</title>
+        <meta name="viewport" content="width=device-width">
 		<link href="/static/css/bootstrap.css" rel="stylesheet">
 		<style type="text/css">
 			body {
@@ -15,6 +19,7 @@
 				bottom: 0;
 				left: 0;
 				right: 0;
+				z-index: 1000;
 			}
 
 			.playoff_probability p {
@@ -23,6 +28,17 @@
 				font-size: 24px;
 				font-weight: bold;
 				color: #fff;
+				z-index: 1000;
+			}
+			
+			@media (max-width: 979px) {
+				.playoff_probability {
+					padding: 10px;
+				}
+				
+				.playoff_probability p {
+					font-size: 14px;
+				}
 			}
 			
 			.table tbody tr.unimportant > td {
@@ -44,7 +60,7 @@
 
 		<div class="container">
 
-			<div class="hero-unit">
+			<div class="hero-unit hidden-phone">
 				<h1 class="muted">Who should I cheer for?</h1>
 				<p>
 					Which teams should you cheer for on any given night, to give your favorite team
@@ -69,6 +85,8 @@
 				</p>
 
 			</div>
+			
+			<div class="hidden-tablet hidden-desktop">&nbsp;</div>
 
 			<div class="row-fluid">
 				<div class="span12">
