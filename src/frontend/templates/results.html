@@ -46,6 +46,8 @@
 			}
 		</style>
 		<link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    	<script src="/static/js/bootstrap.js"></script>
 	</head>
 
 	<body>
@@ -53,7 +55,7 @@
 		<div class="playoff_probability">
 			<center>
 				<p>
-					{{ my_team }} has a <abbr id="probability" href="#" data-toggle="tooltip" title="{{ simulation.playoff_probability }}%">{{ simulation.playoff_probability|floatformat:1 }}%</abbr> chance of making the playoffs this season!
+					{{ my_team }} has a <abbr id="probability" data-toggle="tooltip" title="{{ simulation.playoff_probability }}%">{{ simulation.playoff_probability|floatformat:1 }}%</abbr> chance of making the playoffs this season!
 				</p>
 			</center>
 		</div>
@@ -139,7 +141,10 @@
 							Cheer for {{ my_team }} of course!
 							{% elif game_result.desired %}
 							A <strong>{{ game_result.desired}}</strong> win lifts {{ my_team }}'s chances of making the playoffs
-							by <span class="label label-success">{{ game_result.lift_percentage|floatformat:2 }}%</span>
+							by <abbr class="label label-success" data-toggle="tooltip" title="{{ game_result.lift_percentage }}%" id="gr_{{ game_result.pk }}">{{ game_result.lift_percentage|floatformat:2 }}%</abbr>
+							<script>
+					    		$('#gr_{{ game_result.pk }}').tooltip();
+					    	</script>
 							{% else %}
 							The result of this game doesn't affect {{ simulation.my_team}} making the playoffs this year.
 							{% endif %}
@@ -179,8 +184,6 @@
 			{% endfor %}
 		</div>
 		
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    	<script src="/static/js/bootstrap.js"></script>
     	<script>
     		$('#probability').tooltip();
     	</script>
