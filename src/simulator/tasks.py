@@ -4,6 +4,10 @@ from simulator.models import Simulation
 @task()
 def add(*args, **kwargs):
     simulation = Simulation.objects.get(pk=args[0])
+    
+    if simulation.task_id is None:
+        return
+    
     simulation.simulator.simulation = simulation
     simulation.simulator.run()
     

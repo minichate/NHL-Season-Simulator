@@ -72,7 +72,7 @@ class PlayoffSimulator(object):
     
     @property
     def completed_sims(self):
-        return self.in_playoffs + self.out_playoffs
+        return sum(self.position)
 
     def scrape_schedule(self):
         page = urllib2.urlopen("http://www.nhl.com/ice/schedulebyseason.htm")
@@ -250,6 +250,8 @@ class PlayoffSimulator(object):
                                                 root_for,
                                                 game['win_good'],
                                                 game['loss_good'])
+            
+        print "(team: %s) %s" % (self.my_team, self.position)
             
         GameResult.objects.filter(simulation=self.simulation).all().delete()
         GameResult.objects.bulk_create(game_results)

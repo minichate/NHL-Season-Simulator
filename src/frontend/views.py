@@ -22,9 +22,9 @@ def kickoff(request):
         simulator.init(N, team)
         simulation = Simulation.objects.create(my_team=team, N=0, simulator=simulator)
         
-        request = add.delay(simulation.pk)
+        request = add.delay(simulation.pk, countdown=3)
         simulation.task_id = request.id
-        simulation.save()
+        simulation.save(update_fields=['task_id'])
         
     return HttpResponse("kicked off all")
 
@@ -35,7 +35,7 @@ def stop_all(request):
     for sim in active_sims:
         revoke(sim.task_id, terminate=True)
         sim.task_id = None
-        sim.save()
+        sim.save(update_fields=['task_id'])
         
     discard_all()
     
