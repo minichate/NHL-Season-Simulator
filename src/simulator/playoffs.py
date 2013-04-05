@@ -70,8 +70,6 @@ GAME_VALUES = {('home', 'WIN'): 2,
 
 class PlayoffSimulator(object):
     
-    position = [0] * 15
-    
     @property
     def completed_sims(self):
         return self.in_playoffs + self.out_playoffs
@@ -117,8 +115,8 @@ class PlayoffSimulator(object):
     def reverse_points(self, game, result):
         self.points[game['home']] -= GAME_VALUES[('home', result)]
         self.points[game['away']] -= GAME_VALUES[('away', result)]
-
-    def made_playoffs(self):
+        
+    def get_conference_standing(self):
         DIVS = defaultdict(list)
         
         for team, points in self.points.iteritems():
@@ -140,13 +138,19 @@ class PlayoffSimulator(object):
         STANDINGS = sorted(STANDINGS, key=operator.itemgetter(1), reverse=True) + sorted(INTERSTANDINGS, key=operator.itemgetter(1), reverse=True)
         STANDINGS = [x[0] for x in STANDINGS]
         
-        return STANDINGS.index(self.my_team) <= 7
+        return STANDINGS
+
+    def made_playoffs(self):
+        return self.get_conference_standing().index(self.my_team) <= 7
 
     def made_playoffs_if(self, game, result):
         self.update_points(game, result)
         r = self.made_playoffs()
         self.reverse_points(game, result)
         return r
+    
+    def update_standing(self):
+        self.position[self.get_conference_standing().index(self.my_team)] += 1
 
     def update_playoffs(self):
         """
@@ -198,6 +202,8 @@ class PlayoffSimulator(object):
             self.points[game['away']] += GAME_VALUES[('away', result)]
             gm['result'] = result
             sim_games.append(gm)
+            
+        self.update_standing()
 
         for key in self.points.keys():
             self.points[key] += tweak()
@@ -259,6 +265,7 @@ class PlayoffSimulator(object):
     def init(self, N, my_team):
         self.my_team = my_team
         self.N = N
+        self.position = [0] * 15
 
     def __init__(self):
         self.scrape_schedule()
