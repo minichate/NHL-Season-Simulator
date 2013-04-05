@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from simulator.tasks import add
 from simulator.playoffs import PlayoffSimulator
-from simulator.models import Simulation, GameResult
+from simulator.models import Simulation, GameResult, Run
 from django.shortcuts import render_to_response
 from django.db.models.aggregates import Count
 from django.http.response import HttpResponsePermanentRedirect
@@ -15,12 +15,13 @@ def kickoff(request):
     
     N = 2000
     simulator = PlayoffSimulator()
+    run = Run.objects.create()
     
     stop_all(request)
     
     for team in (simulator.east_points.keys() + simulator.west_points.keys()):
         simulator.init(N, team)
-        simulation = Simulation.objects.create(my_team=team, N=0, simulator=simulator)
+        simulation = Simulation.objects.create(my_team=team, N=0, simulator=simulator, run=run)
         
         request = add.delay(simulation.pk, countdown=3)
         simulation.task_id = request.id

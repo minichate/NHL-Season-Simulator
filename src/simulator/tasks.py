@@ -13,4 +13,4 @@ def add(*args, **kwargs):
     
     request = add.apply_async(args=[args[0]], countdown=3)
     simulation.task_id = request.id
-    simulation.save()
+    simulation.save(update_fields=['task_id'])
