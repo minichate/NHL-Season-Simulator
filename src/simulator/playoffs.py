@@ -150,6 +150,9 @@ class PlayoffSimulator(object):
         return r
     
     def update_standing(self):
+        if not hasattr(self, 'position'):
+            self.position = [0] * 15
+            
         self.position[self.get_conference_standing().index(self.my_team)] += 1
 
     def update_playoffs(self):
@@ -270,5 +273,6 @@ class PlayoffSimulator(object):
     def __init__(self):
         self.scrape_schedule()
         self.scrape_standings()
+        self.position = [0] * 15
 
 #PlayoffSimulator().run()
