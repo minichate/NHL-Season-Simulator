@@ -215,12 +215,6 @@ class PlayoffSimulator(object):
             self.update_games_which_matter(sim_games)
 
     def report(self):
-        self.simulation.in_playoffs = self.in_playoffs
-        self.simulation.out_playoffs = self.out_playoffs
-        self.simulation.simulator = self
-        self.simulation.N = self.completed_sims
-        self.simulation.save()
-        
         game_results = []
         
         for game in self.games:
@@ -230,7 +224,6 @@ class PlayoffSimulator(object):
             game_result.date = game['date'] 
             game_result.home_win_good = game['win_good']
             game_result.home_loss_good = game['loss_good']
-            game_result.simulation = self.simulation 
             
             if game['win_good'] > game['loss_good']:
                 root_for = 'root for %s' % game['home']
@@ -252,10 +245,9 @@ class PlayoffSimulator(object):
                                                 game['loss_good'])
             
         print "(team: %s) %s" % (self.my_team, self.position)
+        
+        return game_results
             
-        GameResult.objects.filter(simulation=self.simulation).all().delete()
-        GameResult.objects.bulk_create(game_results)
-
     def run(self):
         for _ in xrange(self.completed_sims, self.completed_sims + self.N):
             try:
