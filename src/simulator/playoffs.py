@@ -2,7 +2,7 @@ import datetime, urllib2
 from simulator.models import GameResult
 from BeautifulSoup import BeautifulSoup
 from collections import defaultdict
-import operator
+from operator import itemgetter
 from random import choice, random
 from copy import copy
 
@@ -115,14 +115,12 @@ class PlayoffSimulator(object):
                 divisions[self.division[team]].append((team, points))
         
         for div in divisions:
-            divisions[div].sort(key=operator.itemgetter(1), reverse=True)
+            divisions[div].sort(key=itemgetter(1), reverse=True)
             conference.append(divisions[div].pop(0))
             remaining_division += divisions[div]
             
-        conference += sorted(remaining_division, key=operator.itemgetter(1), reverse=True)
-        conference = [x[0] for x in conference]
-        
-        return conference
+        conference += sorted(remaining_division, key=itemgetter(1), reverse=True)
+        return map(itemgetter(0), conference)
 
     def made_playoffs(self):
         return self.get_conference_standing().index(self.my_team) <= 7
@@ -134,9 +132,6 @@ class PlayoffSimulator(object):
         return r
     
     def update_standing(self):
-        if not hasattr(self, 'position'):
-            self.position = [0] * 15
-            
         self.position[self.get_conference_standing().index(self.my_team)] += 1
 
     def update_playoffs(self):
@@ -190,10 +185,11 @@ class PlayoffSimulator(object):
         
         sim_games = map(mapping_function, self.games)
             
-        self.update_standing()
-
         for key in self.points.keys():
             self.points[key] += tweak()
+        
+        self.update_standing()
+            
         critical = self.update_playoffs()
         if critical:
             self.update_games_which_matter(sim_games)
