@@ -49,13 +49,13 @@ def show_results(request):
     else:
         my_team = 'TOR'
         
-    query = Simulation.objects.annotate(game_results_count=Count('gameresult')).filter(my_team=my_team, game_results_count__gt=1).order_by('-run_at')
+    query = Run.objects.order_by('-run_at')[0].simulation_set.filter(my_team=my_team)
     
     if query.count() == 0:
         return HttpResponsePermanentRedirect('/')
         
     simulation = query[0]
-    game_results = GameResult.objects.filter(simulation=simulation).order_by('date')
+    game_results = simulation.gameresult_set.order_by('date').all()
     
     return render_to_response('results.html',
                               {'game_results': game_results,

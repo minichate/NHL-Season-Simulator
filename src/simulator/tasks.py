@@ -10,6 +10,8 @@ def add(*args, **kwargs):
         return
     
     game_results = simulation.simulator.run()
+    for game in game_results:
+        game.simulation = simulation
     
     with transaction.commit_on_success():
         GameResult.objects.filter(simulation=simulation).all().delete()

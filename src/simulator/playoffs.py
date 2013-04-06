@@ -257,7 +257,7 @@ class PlayoffSimulator(object):
             except KeyboardInterrupt:
                 break
         #print "%s %s" % (self.in_playoffs, self.out_playoffs)
-        self.report()
+        return self.report()
         
     def init(self, N, my_team):
         self.my_team = my_team
