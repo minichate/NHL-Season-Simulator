@@ -164,3 +164,4 @@ BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERYD_STATE_DB = 'celery_state.db'
 CELERY_ACKS_LATE = True
+CELERYD_PREFETCH_MULTIPLIER = 1
