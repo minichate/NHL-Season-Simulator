@@ -6,6 +6,9 @@ from django.db import transaction
 def add(*args, **kwargs):
     simulation = Simulation.objects.get(pk=args[0])
     
+    if simulation.task_id == None:
+        return
+    
     game_results = simulation.simulator.run()
     for game in game_results:
         game.simulation = simulation
@@ -19,4 +22,6 @@ def add(*args, **kwargs):
         simulation.N = simulation.simulator.completed_sims
         simulation.save()
         
-        add.apply_async(args=[simulation.pk])
+        result = add.apply_async(args=[simulation.pk])
+        simulation.task_id = result.id
+        simulation.save(update_fields=['task_id'])

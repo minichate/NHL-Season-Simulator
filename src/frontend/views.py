@@ -22,7 +22,9 @@ def kickoff(request):
         simulator_copy = copy.copy(simulator)
         simulator_copy.init(N, team)
         simulation = Simulation.objects.create(my_team=team, N=0, simulator=simulator_copy, run=run)
-        add.apply_async(args=[simulation.pk])
+        result = add.apply_async(args=[simulation.pk])
+        simulation.task_id = result.id
+        simulation.save(update_fields=['task_id'])
         
     return HttpResponse("kicked off all")
 
@@ -30,8 +32,10 @@ def stop_all(request):
     discard_all()
     
     active_sims = Simulation.objects.filter(task_id__isnull=False).all()
-    for sim in active_sims:
-        revoke(sim.task_id, terminate=True)
+    for simulation in active_sims:
+        revoke(simulation.task_id, terminate=True)
+        simulation.task_id = None
+        simulation.save(update_fields=['task_id'])
         
     discard_all()
     
