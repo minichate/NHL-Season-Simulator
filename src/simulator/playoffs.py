@@ -1,29 +1,18 @@
-import datetime, copy, random, urllib2
-from simulator.models import GameResult, Simulation
+import datetime, urllib2
+from simulator.models import GameResult
 from BeautifulSoup import BeautifulSoup
 from collections import defaultdict
 import operator
-
-"""
-Throughout, we ignore tie-break rules.  Instead, tie breaks are simply random.
-To create random tie-breaks, we randomly tweak the final point totals by a
-small amount to force a total-ordering on playoff contenders.
-
-Note that, for simplicity, we are also assuming the top 8 teams in a conference
-make the playoffs, when in fact a lower team could make the playoffs by winning
-its division.
-"""
-
+from random import choice, random
+from copy import copy
 
 OUTCOMES = [('WIN', 38), ('LOSS', 38), ('OTWIN', 12), ('OTLOSS', 12)]
-#N = 10000
-#MY_TEAM = 'TOR'
 
 def weighted_choice(s):
-    return random.choice(sum(([v]*wt for v,wt in s),[]))
+    return choice(sum(([v] * wt for v, wt in s), []))
 
-def tweak(): # Random tiebreak
-    return random.random()/100
+def tweak():  # Random tiebreak
+    return random() / 100
 
 def ordinalize(number):
     if 4 <= number <= 20 or 24 <= number <= 30:
@@ -58,7 +47,7 @@ def get_division(table):
             CONF_DIVISION[team] = str(division)
     return CONF_DIVISION
 
-#WIN or LOSS from perspective of home team
+# WIN or LOSS from perspective of home team
 GAME_VALUES = {('home', 'WIN'): 2,
                ('home', 'OTWIN'): 2,
                ('home', 'LOSS'): 0,
@@ -77,7 +66,7 @@ class PlayoffSimulator(object):
     def scrape_schedule(self):
         page = urllib2.urlopen("http://www.nhl.com/ice/schedulebyseason.htm")
         soup = BeautifulSoup(page)
-        table = soup.find("table",{"class":"data schedTbl"})
+        table = soup.find("table", {"class":"data schedTbl"})
         table_body = table.find('tbody')
         self.games = []
 
@@ -98,11 +87,11 @@ class PlayoffSimulator(object):
     def scrape_standings(self):
         page = urllib2.urlopen("http://www.nhl.com/ice/standings.htm?type=con")
         soup = BeautifulSoup(page)
-        east_table, west_table = soup.findAll("table",{"class":"data standings Conference"})
+        east_table, west_table = soup.findAll("table", {"class":"data standings Conference"})
 
         self.east_points = get_standings(east_table)
         self.west_points = get_standings(west_table)
-        self.in_playoffs, self.out_playoffs = 0,0
+        self.in_playoffs, self.out_playoffs = 0, 0
         
         self.division = {}
         self.division = get_division(east_table)
@@ -195,16 +184,16 @@ class PlayoffSimulator(object):
         self.points = {}
         self.points.update(self.east_points)
         self.points.update(self.west_points)
-
-        sim_games = []
-
-        for game in self.games:
+        
+        update_points = self.update_points
+        def mapping_function(game):
             result = weighted_choice(OUTCOMES)
-            gm = copy.copy(game)
-            self.points[game['home']] += GAME_VALUES[('home', result)]
-            self.points[game['away']] += GAME_VALUES[('away', result)]
+            gm = copy(game)
+            update_points(game, result)
             gm['result'] = result
-            sim_games.append(gm)
+            return gm
+        
+        sim_games = map(mapping_function, self.games)
             
         self.update_standing()
 
@@ -249,14 +238,18 @@ class PlayoffSimulator(object):
         return game_results
             
     def run(self):
+        start = datetime.datetime.now()
         for _ in xrange(self.completed_sims, self.completed_sims + self.N):
             try:
                 self.simulate_once()
                 if self.completed_sims % 1000 == 0:
                     print '(team: %s) Have run %s simulations...' % (self.my_team, self.completed_sims)
+                    print datetime.datetime.now() - start
+                    start = datetime.datetime.now()
             except KeyboardInterrupt:
                 break
-        #print "%s %s" % (self.in_playoffs, self.out_playoffs)
+        # print "%s %s" % (self.in_playoffs, self.out_playoffs)
+        
         return self.report()
         
     def init(self, N, my_team):
@@ -269,4 +262,4 @@ class PlayoffSimulator(object):
         self.scrape_standings()
         self.position = [0] * 15
 
-#PlayoffSimulator().run()
+# PlayoffSimulator().run()
