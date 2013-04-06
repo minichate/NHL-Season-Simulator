@@ -106,28 +106,23 @@ class PlayoffSimulator(object):
         self.points[game['away']] -= GAME_VALUES[('away', result)]
         
     def get_conference_standing(self):
-        DIVS = defaultdict(list)
+        divisions, conference, remaining_division = defaultdict(list), [], []
         
         for team, points in self.points.iteritems():
             if team in self.east_points and self.my_team in self.east_points:
-                DIVS[self.division[team]].append((team, points))
-                DIVS[self.division[team]] = sorted(DIVS[self.division[team]], key=operator.itemgetter(1), reverse=True)
+                divisions[self.division[team]].append((team, points))
             if team in self.west_points and self.my_team in self.west_points:
-                DIVS[self.division[team]].append((team, points))
-                DIVS[self.division[team]] = sorted(DIVS[self.division[team]], key=operator.itemgetter(1), reverse=True)
-            
-        STANDINGS = []
-        INTERSTANDINGS = []
+                divisions[self.division[team]].append((team, points))
         
-        for div in DIVS:
-            top = DIVS[div].pop(0)
-            STANDINGS.append(top)
-            INTERSTANDINGS = INTERSTANDINGS + DIVS[div]
+        for div in divisions:
+            divisions[div].sort(key=operator.itemgetter(1), reverse=True)
+            conference.append(divisions[div].pop(0))
+            remaining_division += divisions[div]
             
-        STANDINGS = sorted(STANDINGS, key=operator.itemgetter(1), reverse=True) + sorted(INTERSTANDINGS, key=operator.itemgetter(1), reverse=True)
-        STANDINGS = [x[0] for x in STANDINGS]
+        conference += sorted(remaining_division, key=operator.itemgetter(1), reverse=True)
+        conference = [x[0] for x in conference]
         
-        return STANDINGS
+        return conference
 
     def made_playoffs(self):
         return self.get_conference_standing().index(self.my_team) <= 7
