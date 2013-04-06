@@ -16,7 +16,7 @@ class Simulation(models.Model):
     
     @property
     def playoff_probability(self):
-        return 100 * float(sum(self.simulator.position[:8])) / float(sum(self.simulator.position))
+        return 100 * float(sum(self.simulator.position[:8]) + 1) / float(sum(self.simulator.position) + 1)
     
     @property
     def non_playoff_probability(self):
