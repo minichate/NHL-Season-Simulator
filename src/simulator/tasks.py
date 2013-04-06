@@ -1,7 +1,6 @@
 from celery import task
 from simulator.models import Simulation, GameResult
 from django.db import transaction
-import random
 
 @task()
 def add(*args, **kwargs):
@@ -20,4 +19,4 @@ def add(*args, **kwargs):
         simulation.N = simulation.simulator.completed_sims
         simulation.save()
         
-        add.apply_async(args=[simulation.pk], countdown=random.randint(10, 30))
+        add.apply_async(args=[simulation.pk])
