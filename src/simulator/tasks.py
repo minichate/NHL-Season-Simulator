@@ -1,6 +1,7 @@
 from celery import task
 from simulator.models import Simulation, GameResult
 from django.db import transaction
+import random
 
 @task()
 def add(*args, **kwargs):
@@ -14,9 +15,9 @@ def add(*args, **kwargs):
         GameResult.objects.filter(simulation=simulation).all().delete()
         GameResult.objects.bulk_create(game_results)
     
-        request = add.apply_async(args=[simulation.pk], countdown=3)
-        simulation.task_id = request.id
         simulation.in_playoffs = simulation.simulator.in_playoffs
         simulation.out_playoffs = simulation.simulator.out_playoffs
         simulation.N = simulation.simulator.completed_sims
         simulation.save()
+        
+        add.apply_async(args=[simulation.pk], countdown=random.randint(10, 30))
