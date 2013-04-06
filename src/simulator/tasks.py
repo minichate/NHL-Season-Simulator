@@ -6,9 +6,6 @@ from django.db import transaction
 def add(*args, **kwargs):
     simulation = Simulation.objects.get(pk=args[0])
     
-    if simulation.task_id is None:
-        return
-    
     game_results = simulation.simulator.run()
     for game in game_results:
         game.simulation = simulation
